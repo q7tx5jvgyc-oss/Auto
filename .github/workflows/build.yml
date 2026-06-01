@@ -5,7 +5,7 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-  workflow_dispatch: # يتيح لك تشغيل البناء يدوياً أيضاً
+  workflow_dispatch:
 
 jobs:
   build:
@@ -15,11 +15,16 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v4
 
+    # خطوة اختيارية للتأكد من رؤية الملفات في لواجهة التشغيل
+    - name: List files in repository
+      run: ls -R
+
     - name: Set up Xcode
       run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 
     - name: Compile Dylib
       run: |
+        # إذا كان ملفك داخل مجلد فرعي، استبدل main.mm بـ اسم_المجلد/main.mm
         clang++ -dynamiclib -isysroot $(xcrun --sdk iphoneos --show-sdk-path) \
         -arch arm64 -miphoneos-version-min=14.0 \
         -framework UIKit -framework Foundation -framework CoreGraphics \
