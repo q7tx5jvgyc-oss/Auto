@@ -13,9 +13,9 @@ jobs:
 
     - name: Write Main Code File Internally
       run: |
-        # كتابة كود الأوتو الكامل (الزر العائم وقائمة التحكم والسرعة) داخل السيرفر تلقائياً لتجنب خطأ الفقد
         cat << 'EOF' > main.mm
         #import <UIKit/UIKit.h>
+        #import <CoreGraphics/CoreGraphics.h>
 
         @interface AutoTouchWindow : UIWindow
         @property (nonatomic, strong) UIButton *floatingButton;
@@ -62,7 +62,8 @@ jobs:
         - (void)handlePan:(UIPanGestureRecognizer *)sender {
             CGPoint translation = [sender translationInView:self];
             sender.view.center = CGPointMake(sender.view.center.x + translation.x, sender.view.center.y + translation.y);
-            [sender setTranslation:CGPointZero inView:self];
+            // تصحيح رمز تصفير الحركة ليتوافق مع المترجم الفوري المباشر
+            [sender setTranslation:CGPoint(0,0) inView:self];
         }
 
         - (void)createMenuView {
@@ -149,15 +150,14 @@ jobs:
       run: |
         mkdir -p AutoTouchOutput
 
-        # تجميع الملف الذي أنشأناه في الخطوة السابقة مباشرة لمعالجات الآيفون
+        # إضافة كود ربط مكتبة الـ CoreGraphics الهندسية لتخطي خطأ الـ arm64 الحاصل
         xcrun -sdk iphoneos clang++ -dynamiclib \
           -arch arm64 -arch arm64e \
           -miphoneos-version-min=14.0 \
-          -framework UIKit -framework Foundation \
+          -framework UIKit -framework Foundation -framework CoreGraphics \
           -fobjc-arc main.mm \
           -o AutoTouchOutput/AutoTouchCore.dylib
 
-        # ضغط الملف الناتج إلى صيغة ZIP
         zip -r AutoTouchDylib.zip AutoTouchOutput
 
     - name: Deliver Zip File
