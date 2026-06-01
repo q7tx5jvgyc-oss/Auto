@@ -1,9 +1,7 @@
-name: Build iOS Dylib
+name: Build iOS Tweak via Theos
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
     branches: [ "main" ]
   workflow_dispatch:
 
@@ -15,23 +13,21 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v4
 
-    # خطوة اختيارية للتأكد من رؤية الملفات في لواجهة التشغيل
-    - name: List files in repository
-      run: ls -R
-
-    - name: Set up Xcode
-      run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
-
-    - name: Compile Dylib
+    - name: Set up Theos Environment
       run: |
-        # إذا كان ملفك داخل مجلد فرعي، استبدل main.mm بـ اسم_المجلد/main.mm
-        clang++ -dynamiclib -isysroot $(xcrun --sdk iphoneos --show-sdk-path) \
-        -arch arm64 -miphoneos-version-min=14.0 \
-        -framework UIKit -framework Foundation -framework CoreGraphics \
-        main.mm -o AutoTouchMenu.dylib
-
-    - name: Upload Dylib Artifact
+        git clone --recursive https://github.com $HOME/theos
+        echo "THEOS=$HOME/theos" >> $GITHUB_ENV
+        
+    - name: Set up iOS SDK
+      run: |
+        git clone https://github.com $HOME/theos/sdks
+        
+    - name: Compile Project
+      run: |
+        make package FINALPACKAGE=1
+        
+    - name: Upload Compiled Files
       uses: actions/upload-artifact@v4
       with:
-        name: AutoTouch-Compiled-Dylib
-        path: AutoTouchMenu.dylib
+        name: AutoTouch-ModMenu-Package
+        path: .theos/obj/debug/*.dylib
