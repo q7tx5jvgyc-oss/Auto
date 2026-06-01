@@ -1,0 +1,34 @@
+name: AutoTouch Dylib Builder
+on:
+  push:
+    branches: [ "main", "master" ] # سيبدأ البناء تلقائياً فور الحفظ
+  workflow_dispatch: # يتيح لك تشغيله يدوياً أيضاً
+
+jobs:
+  build_job:
+    runs-on: macos-14
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Compile Pure iOS Dylib
+      run: |
+        # إنشاء المجلد النهائي للمخرجات
+        mkdir -p AutoTouchOutput
+
+        # تجميع ملف main.mm مباشرة لمعالجات الآيفون الحديثة وتفادي نقص المكاتب المعقدة
+        xcrun -sdk iphoneos clang++ -dynamiclib \
+          -arch arm64 -arch arm64e \
+          -miphoneos-version-min=14.0 \
+          -framework UIKit -framework Foundation \
+          -fobjc-arc main.mm \
+          -o AutoTouchOutput/AutoTouchCore.dylib
+
+        # ضغط المجلد تلقائياً ليتحول إلى صيغة ZIP لسهولة تحميله على الآيفون
+        zip -r AutoTouchDylib.zip AutoTouchOutput
+
+    - name: Deliver Zip File
+      uses: actions/upload-artifact@v4
+      with:
+        name: Download-AutoTouch-Zip
+        path: AutoTouchDylib.zip
