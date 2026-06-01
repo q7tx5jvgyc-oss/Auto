@@ -19,9 +19,6 @@ jobs:
         #import <QuartzCore/QuartzCore.h>
         #import <mach/mach_time.h>
 
-        // ==========================================================
-        // 1. تصميم الأهداف المتعددة المرقمة الفخمة باللون الذهبي والأسود
-        // ==========================================================
         @interface MustacheTargetNode : UIView
         @property (nonatomic, assign) CGPoint screenAbsolutePoint; 
         @property (nonatomic, strong) UILabel *numberLabel;
@@ -31,14 +28,12 @@ jobs:
         - (instancetype)initWithFrame:(CGRect)frame index:(NSInteger)index {
             self = [super initWithFrame:frame];
             if (self) {
-                // تصميم VIP: خلفية ذهبية ملكية شفافة مع إطار أسود عريض وواضح فوق طاولة لودو
                 self.backgroundColor = [[UIColor colorWithRed:0.85 green:0.65 blue:0.13 alpha:1.0] colorWithAlphaComponent:0.75];
                 self.layer.cornerRadius = frame.size.width / 2;
                 self.layer.borderColor = [UIColor blackColor].CGColor;
                 self.layer.borderWidth = 2.5;
                 self.userInteractionEnabled = YES;
                 
-                // الرقم في المنتصف باللون الأسود العريض
                 self.numberLabel = [[UILabel alloc] initWithFrame:self.bounds];
                 self.numberLabel.text = [NSString stringWithFormat:@"%ld", (long)index];
                 self.numberLabel.textColor = [UIColor blackColor];
@@ -46,7 +41,6 @@ jobs:
                 self.numberLabel.font = [UIFont boldSystemFontOfSize:15];
                 [self addSubview:self.numberLabel];
                 
-                // إيماءة سحب وتحريك الهدف بحرية
                 UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handleNodePan:)];
                 [self addGestureRecognizer:pan];
                 
@@ -66,14 +60,10 @@ jobs:
         }
 
         - (void)updateAbsolutePosition {
-            // حفظ الإحداثي الفعلي والمباشر للهدف بالنسبة للشاشة كاملة
             self.screenAbsolutePoint = self.center;
         }
         @end
 
-        // ==========================================================
-        // 2. واجهة مود منيو موستاش العائم المحقونة داخل اللعبة لمنع الفريز
-        // ==========================================================
         @interface MustacheLudoController : NSObject
         @property (nonatomic, strong) UIButton *floatingButton;
         @property (nonatomic, strong) UIView *menuContainer;
@@ -121,7 +111,6 @@ jobs:
             }
             if (!gameWindow) return;
 
-            // 🌟 تصميم الزر العائم: دائري أسود ملكي فخم يحيطه إطار ذهبي توهج VIP
             self.floatingButton = [UIButton buttonWithType:UIButtonTypeCustom];
             self.floatingButton.frame = CGRectMake(50, 180, 60, 60);
             self.floatingButton.backgroundColor = [UIColor blackColor];
@@ -142,7 +131,6 @@ jobs:
             [self.floatingButton addTarget:self action:@selector(toggleMenu) forControlEvents:UIControlEventTouchUpInside];
             [gameWindow addSubview:self.floatingButton];
             
-            // 🌟 تصميم القائمة: أسود داكن VIP مع حواف ذهبية فخمة واسم المود المطلوب
             self.menuContainer = [[UIView alloc] initWithFrame:CGRectMake(50, 250, 260, 280)];
             self.menuContainer.backgroundColor = [[UIColor colorWithRed:0.07 green:0.07 blue:0.07 alpha:1.0] colorWithAlphaComponent:0.98];
             self.menuContainer.layer.cornerRadius = 18;
@@ -157,7 +145,6 @@ jobs:
             title.font = [UIFont boldSystemFontOfSize:14];
             [self.menuContainer addSubview:title];
             
-            // زر "➕ اضافه هدف"
             UIButton *addBtn = [UIButton buttonWithType:UIButtonTypeCustom];
             addBtn.frame = CGRectMake(25, 55, 200, 36);
             addBtn.backgroundColor = [UIColor colorWithRed:0.12 green:0.12 blue:0.12 alpha:1.0];
@@ -170,7 +157,6 @@ jobs:
             [addBtn addTarget:self action:@selector(addTargetNode) forControlEvents:UIControlEventTouchUpInside];
             [self.menuContainer addSubview:addBtn];
             
-            // زر "❌ حذف آخر هدف" للتعديل والتحكم بالاهداف المرقمة
             UIButton *removeBtn = [UIButton buttonWithType:UIButtonTypeCustom];
             removeBtn.frame = CGRectMake(25, 100, 200, 36);
             removeBtn.backgroundColor = [UIColor colorWithRed:0.65 green:0.10 blue:0.15 alpha:1.0];
@@ -181,10 +167,24 @@ jobs:
             [removeBtn addTarget:self action:@selector(removeLastNode) forControlEvents:UIControlEventTouchUpInside];
             [self.menuContainer addSubview:removeBtn];
             
-            // شريط السرعة (Slider) بلون ذهبي فخم
             self.speedSlider = [[UISlider alloc] initWithFrame:CGRectMake(25, 150, 200, 30)];
             self.speedSlider.minimumValue = 0.01; 
             self.speedSlider.maximumValue = 1.5;
             self.speedSlider.value = 0.10;
             self.speedSlider.minimumTrackTintColor = [UIColor colorWithRed:0.93 green:0.75 blue:0.25 alpha:1.0]; 
             self.speedSlider.maximumTrackTintColor = [UIColor darkGrayColor];
+            [self.speedSlider addTarget:self action:@selector(sliderChanged:) forControlEvents:UIControlEventValueChanged];
+            [self.menuContainer addSubview:self.speedSlider];
+            
+            self.speedLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, 182, 230, 20)];
+            self.speedLabel.text = @"معدل النقر: 0.10 ثانية";
+            self.speedLabel.textColor = [UIColor lightGrayColor];
+            self.speedLabel.textAlignment = NSTextAlignmentCenter;
+            self.speedLabel.font = [UIFont systemFontOfSize:11];
+            [self.menuContainer addSubview:self.speedLabel];
+            
+            self.toggleButton = [UIButton buttonWithType:UIButtonTypeCustom];
+            self.toggleButton.frame = CGRectMake(25, 215, 200, 42);
+            self.toggleButton.backgroundColor = [UIColor colorWithRed:0.93 green:0.75 blue:0.25 alpha:1.0];
+            [self.toggleButton setTitle:@"▶️ تشغيل التلقائي" forState:UIControlStateNormal];
+            [self.toggleButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
