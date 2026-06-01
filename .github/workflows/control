@@ -1,8 +1,9 @@
-Package: com.yourname.autotouchcore
-Name: AutoTouch Pro Menu
+Package: com.yourname.autotouchmenu
+Name: AutoTouch Mod Menu
 Depends: mobilesubstrate
 Version: 1.0.0
-Architecture: iphoneos-arm
-Description: Complete auto touch tweak with floating button, speed control, and multi-targets.
-Maintainer: Developer
-Author: Developer
+Architecture: iphoneos-arm64
+Description: أداة النقرات التلقائية المتقدمة للألعاب
+Maintainer: YourName
+Author: YourName
+Section: Tweaks
