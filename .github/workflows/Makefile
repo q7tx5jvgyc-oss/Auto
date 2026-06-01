@@ -1,10 +1,12 @@
-TARGET := iphone:clang:latest:14.5
-ARCHS = arm64 arm64e
+TARGET := iphone:clang:latest:14.0
+ARCHS := arm64
 
 include $(THEOS)/makefiles/common.mk
 
-TWEAK_NAME = AutoTouchCore
-AutoTouchCore_FILES = main.mm
-AutoTouchCore_CFLAGS = -fobjc-arc
+TWEAK_NAME := AutoTouchMenu
 
-include $(THEOS)/makefiles/tweak.mk
+# هنا نحدد ملف الكود الرئيسي الخاص بك
+AutoTouchMenu_FILES := main.mm
+AutoTouchMenu_FRAMEWORKS := UIKit Foundation CoreGraphics
+
+include $(THEOS_MAKE_PATH)/tweak.mk
