@@ -1,0 +1,41 @@
+name: AutoTouch Dylib Builder
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build_job:
+    runs-on: macos-14
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up Theos Core
+      run: |
+        bash -c "$(curl -fsSL https://githubusercontent.com)"
+        echo "THEOS=~/theos" >> $GITHUB_ENV
+        echo "~/theos/bin" >> $GITHUB_PATH
+        mkdir -p ~/theos/sdks
+        curl -L https://github.com | tar -xf - -C ~/theos/sdks/
+
+    - name: Compile to Dylib
+      run: |
+        export THEOS=~/theos
+        make FINALPACKAGE=1
+        
+        # إنشاء المجلد المخصص للمخرجات وجمع ملف الـ dylib الناتج
+        mkdir -p AutoTouchOutput
+        cp -r .theos/obj/debug/AutoTouchCore.dylib AutoTouchOutput/ 2>/dev/null || true
+        cp -r .theos/obj/AutoTouchCore.dylib AutoTouchOutput/ 2>/dev/null || true
+        cp -r .theos/obj/debug/AutoTouchMenu.dylib AutoTouchOutput/ 2>/dev/null || true
+        cp -r .theos/obj/AutoTouchMenu.dylib AutoTouchOutput/ 2>/dev/null || true
+        
+        # ضغط المجلد تلقائياً ليتحول إلى صيغة ZIP
+        zip -r AutoTouchDylib.zip AutoTouchOutput
+
+    - name: Deliver Zip File
+      uses: actions/upload-artifact@v4
+      with:
+        name: Download-AutoTouch-Zip
+        path: AutoTouchDylib.zip
