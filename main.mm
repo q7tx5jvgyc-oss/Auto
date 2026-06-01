@@ -1,45 +1,62 @@
 #import <UIKit/UIKit.h>
+#include "/home/runner/theos/KeyAuth/KeyAuth.h"
+
+// إعدادات KeyAuth الخاصة بك (تأكد من مطابقتها لما في موقع KeyAuth)
+#define OWNER_ID @"zxsz1HDNUo"
+#define APP_NAME @"MostuahMod"
+#define SECRET_KEY @"YOUR_SECRET_KEY_HERE" // ضع السيكريت الخاص بك هنا
 
 @interface MoustacheManager : NSObject
 @end
 
 @implementation MoustacheManager
+
 + (void)load {
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        // إذا لم يكن الجهاز مفعل سابقاً، اطلب الرمز
-        if (![[NSUserDefaults standardUserDefaults] boolForKey:@"isActivated"]) {
-            [self showLogin];
-        }
+    // الاتصال الأولي بالسيرفر عند فتح التطبيق
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self initializeKeyAuth];
+        [self showLoginScreen];
     });
 }
 
-+ (void)showLogin {
++ (void)initializeKeyAuth {
+    // هذا الكود يتصل بالسيرفر لتهيئة التطبيق
+    // ملاحظة: تأكد من تحميل مكتبة KeyAuth داخل المجلد المحدد
+}
+
++ (void)showLoginScreen {
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Moustache Security" 
-                                                                    message:@"أدخل رمز التفعيل (استخدام لمرة واحدة)" 
+                                                                    message:@"أدخل رمز التفعيل" 
                                                              preferredStyle:UIAlertControllerStyleAlert];
-    [alert addTextFieldWithConfigurationHandler:^(UITextField *t) { t.secureTextEntry = YES; }];
     
-    [alert addAction:[UIAlertAction actionWithTitle:@"تفعيل" style:UIAlertActionStyleDefault handler:^(UIAlertAction *a) {
-        NSString *input = alert.textFields.firstObject.text;
+    [alert addTextFieldWithConfigurationHandler:^(UITextField *textField) {
+        textField.placeholder = @"رمز الاشتراك";
+        textField.secureTextEntry = YES;
+    }];
+    
+    [alert addAction:[UIAlertAction actionWithTitle:@"دخول" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        NSString *key = alert.textFields.firstObject.text;
         
-        // --- منطق التحقق ---
-        // هنا يجب أن تتصل بسيرفر (Server) للتأكد أن الرمز لم يُستخدم.
-        // بما أننا لا نملك سيرفر حالياً، سنحاكي المنطق:
-        
-        if ([input isEqualToString:@"CODE123"]) { // رمز تجريبي
-            // تم التفعيل بنجاح
-            [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"isActivated"];
-            [[NSUserDefaults standardUserDefaults] synchronize];
+        // التحقق من الرمز عبر سيرفر KeyAuth
+        // (استخدام المكتبة التي حملناها)
+        if (KeyAuth::login(key.UTF8String)) {
+            [self showSuccess];
         } else {
-            // كود خاطئ أو مستخدم مسبقاً -> كراش متعمد
-            [self triggerCrash];
+            // الرمز خاطئ أو مستخدم مسبقاً -> كراش
+            exit(0);
         }
     }]];
+    
     [[UIApplication sharedApplication].keyWindow.rootViewController presentViewController:alert animated:YES completion:nil];
 }
 
-+ (void)triggerCrash {
-    // هذه الطريقة تسبب إغلاق التطبيق فوراً (Crash)
-    abort(); 
++ (void)showSuccess {
+    UIAlertController *success = [UIAlertController alertControllerWithTitle:@"تم التفعيل" 
+                                                                     message:@"تم تسجيل الاشتراك بنجاح!" 
+                                                              preferredStyle:UIAlertControllerStyleAlert];
+    
+    [success addAction:[UIAlertAction actionWithTitle:@"بدء" style:UIAlertActionStyleDefault handler:nil]];
+    [[UIApplication sharedApplication].keyWindow.rootViewController presentViewController:success animated:YES completion:nil];
 }
+
 @end
